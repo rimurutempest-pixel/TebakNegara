@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><title>Game Campur</title></head>
+<body>
+<h2 id="mode-title"></h2>
+<p id="question"></p>
+<input id="ans"><button onclick="check()">Cek</button>
+<p id="result"></p>
+<script>
+const dataClassic=["1+1","2+2","3+2"],ansClassic=["2","4","5"];
+const dataCerdas=["5","7","9"],ansCerdas=["ganjil","ganjil","ganjil"];
+let idx=0,mode='classic';
+const p=new URLSearchParams(location.search);
+if(p.get('m'))mode=p.get('m');
+function show(){
+  const q=mode==='classic'?dataClassic:dataCerdas;
+  document.getElementById('mode-title').innerText=mode==='classic'?'Mode Klasik':'Mode Cerdas';
+  document.getElementById('question').innerText=q[idx];
+  history.pushState(null,'','?level='+(idx+1)+'&m='+mode);
+}
+function check(){
+  const a=document.getElementById('ans').value.toLowerCase();
+  const right=mode==='classic'?ansClassic:ansCerdas;
+  const res=document.getElementById('result');
+  if(a===right[idx]){res.innerText='Benar';idx++;if(idx>=right.length){res.innerText='Selesai';return}else show()}
+  else res.innerText='Salah';
+}
+window.onpopstate=()=>{const p2=new URLSearchParams(location.search);idx=(parseInt(p2.get('level'))||1)-1;mode=p2.get('m')||mode;show()};
+show();
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Game Tebak Negara</title>
+<style>
+body{margin:0;background:#222;color:#fff;font-family:monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}
+#game{display:none;flex-direction:column;align-items:center}
+button{margin:5px;padding:5px 10px}
+</style>
+</head>
+<body>
+<div id="welcome" style="display:flex;flex-direction:column;align-items:center">
+<h1>Selamat datang di Game Tebak Negara</h1>
+<p>Pembuat: Pangeran Agil</p>
+<p style="font-size:12px">Note: masukan secret kode jika tau</p>
+<input id="code" placeholder="Kode rahasia" style="color:white;background:#333;border:1px solid #555">
+<button onclick="checkCode()">OK</button>
+<div id="modes" style="margin:10px">
+<button onclick="setMode('classic');start()">Classic</button>
+<button onclick="setMode('survival');start()">Survival</button>
+</div>
+<div id="selector" style="display:none;margin-top:10px">
+<select id="lev" onchange="goLevel()"></select>
+</div>
+</div>
+<div id="game">
+<p id="stat" style="font-size:12px"></p>
+<p style="font-size:12px">Jika jawaban anda salah jangan gunakan spasi, jika tetap salah berarti anda plenger</p>
+<h2 id="lvl"></h2>
+<p id="clue"></p>
+<input id="ans" placeholder="Jawaban" style="color:white;background:#333;border:1px solid #555">
+<button onclick="check()">Cek</button>
+<button onclick="prev()" id="prevBtn">Sebelumnya</button>
+<button onclick="next()" id="nextBtn">Berikutnya</button>
+<button onclick="shopAnswer()" id="shopAnsBtn" style="display:none">Beli Jawaban (5 poin)</button>
+<button onclick="shopLife()" id="shopLifeBtn" style="display:none">Beli Nyawa (3 poin)</button>
+<button onclick="backMenu()">Main Menu</button>
+<p id="result" style="color:white"></p>
+</div>
+<script>
+const levelsClassic=[{q:"Piramida, mumi, pasir",a:"mesir"},{q:"Menara Eiffel, roti baguette, mode",a:"prancis"},{q:"Sushi, gunung fuji, samurai",a:"jepang"},{q:"Tembok Raksasa, panda, naga",a:"china"},{q:"Colosseum, pizza, vespa",a:"italia"},{q:"Kanguru, koala, outback",a:"australia"},{q:"Tulip, kincir angin, keju",a:"belanda"},{q:"Taj Mahal, rempah, sungai gangga",a:"india"},{q:"Piramida Aztek, sombrero, taco",a:"meksiko"},{q:"Menara Big Ben, teh, double decker",a:"inggris"},{q:"Fjords, viking, aurora",a:"norwegia"},{q:"Samba, amazon, sepak bola",a:"brasil"},{q:"Chocolate, alpen, jam tangan",a:"swiss"},{q:"Hanseatic, bir, bratwurst",a:"jerman"},{q:"Geyser, viking, islandia",a:"islandia"}];
+const levelsSurvival=[{q:"Tango, Andes, Patagonia",a:"argentina"},{q:"Maple leaf, hockey, niagara",a:"kanada"},{q:"K-pop, hanbok, kimchi",a:"korea"},{q:"Mayan, cenote, tequila",a:"meksiko"},{q:"Hagia Sophia, baklava, bazaar",a:"turki"},{q:"Safir, savanna, kilimanjaro",a:"tanzania"},{q:"Vodka, balalaika, matryoshka",a:"rusia"},{q:"Cevapi, delalija bridge",a:"bosnia"},{q:"Paella, flamenco, gaudi",a:"spanyol"},{q:"Pho, halong bay, ao dai",a:"vietnam"},{q:"Pad thai, tuk-tuk, bangkok",a:"thailand"},{q:"Kopi luwak, borobudur, komodo",a:"indonesia"},{q:"Samosas, medina, casablanca",a:"maroko"},{q:"Mole, maté, ibiza",a:"argentina"},{q:"Myth, acropolis, olive",a:"yunani"}];
+let idx=0,unlocked=0,mode='classic',lives=3,score=0,answered=[];
+function save(){localStorage.setItem('game',JSON.stringify({idx,unlocked,score,lives,mode}))}
+function load(){const g=JSON.parse(localStorage.getItem('game'));if(g){idx=g.idx;unlocked=g.unlocked;score=g.score;lives=g.lives;mode=g.mode}}
+function checkCode(){if(document.getElementById('code').value==='Agil imut'){const s=document.getElementById('lev');s.innerHTML='';const list=mode==='survival'?levelsSurvival:levelsClassic;list.forEach((_,i)=>{s.innerHTML+=`<option value="${i}">Level ${i+1}</option>`});document.getElementById('selector').style.display='block'}}
+function setMode(m){mode=m;idx=0;unlocked=0;lives=3;score=0;answered=[];document.getElementById('selector').style.display='none';document.getElementById('stat').innerText=mode==='survival'?`Nyawa:${lives} Skor:${score}`:'';document.getElementById('shopAnsBtn').style.display=mode==='survival'?'inline':'none';document.getElementById('shopLifeBtn').style.display=mode==='survival'?'inline':'none'}
+function start(){load();document.getElementById('welcome').style.display='none';document.getElementById('game').style.display='flex';show()}
+function goLevel(){idx=parseInt(document.getElementById('lev').value);unlocked=idx;save();start()}
+function backMenu(){save();document.getElementById('game').style.display='none';const w=document.getElementById('welcome');w.style.display='flex';w.style.flexDirection='column';w.style.alignItems='center'}
+function show(){const list=mode==='survival'?levelsSurvival:levelsClassic;document.getElementById('lvl').innerText='Level '+(idx+1);document.getElementById('clue').innerText=list[idx].q;document.getElementById('ans').value='';document.getElementById('result').innerText='';document.getElementById('prevBtn').style.display=idx>0?'inline':'none';if(idx<unlocked){document.getElementById('nextBtn').style.display='inline';document.getElementById('nextBtn').innerText='Berikutnya'}else if(idx===list.length-1){document.getElementById('nextBtn').style.display='inline';document.getElementById('nextBtn').innerText='level nya hanya segitu dulu tunggu pangeran Agil update'}else{document.getElementById('nextBtn').style.display='none'};document.getElementById('stat').innerText=mode==='survival'?`Nyawa:${lives} Skor:${score}`:'';save()}
+function check(){const list=mode==='survival'?levelsSurvival:levelsClassic;if(document.getElementById('ans').value.toLowerCase()===list[idx].a){document.getElementById('result').innerText='Benar!';if(mode==='survival' &&!answered[idx])score+=2;if(idx===unlocked)unlocked++;answered[idx]=true;idx++;if(idx<list.length)setTimeout(show,800);else document.getElementById('result').innerText='Selesai!'}else{document.getElementById('result').innerText='Salah';if(mode==='survival'){lives--;if(lives<=0){document.getElementById('result').innerText='Game Over';idx=0;unlocked=0;lives=3;score=0;answered=[];save();setTimeout(backMenu,1200);return}}};if(mode==='survival')document.getElementById('stat').innerText=`Nyawa:${lives} Skor:${score}`;save()}
+function shopAnswer(){if(mode==='survival' && score>=5){score-=5;const ans=levelsSurvival[idx].a;document.getElementById('ans').value=ans;document.getElementById('result').innerText='Jawaban: '+ans;answered[idx]=true;document.getElementById('stat').innerText=`Nyawa:${lives} Skor:${score}`;save()}}
+function shopLife(){if(mode==='survival' && score>=3){score-=3;lives++;document.getElementById('stat').innerText=`Nyawa:${lives} Skor:${score}`;save()}}
+function prev(){if(idx>0){idx--;show()}}
+function next(){const list=mode==='survival'?levelsSurvival:levelsClassic;if(document.getElementById('nextBtn').innerText==='Berikutnya' && idx<unlocked){idx++;show()}}
+</script>
+</body>
+</html>
